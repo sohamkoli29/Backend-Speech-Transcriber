@@ -29,7 +29,7 @@ Handles authentication, file uploads, database management, and communication wit
 
 Clone the repository:
 ```bash
-git clone https://github.com/your-username/backend-speech-transcriber.git
+git clone https://github.com/sohamkoli29/backend-speech-transcriber.git
 cd backend-speech-transcriber
 ```
 
