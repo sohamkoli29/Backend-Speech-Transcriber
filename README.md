@@ -1,3 +1,10 @@
+# Speech Transcriber
+
+## Repositories
+- [Frontend](https://github.com/sohamkoli29/Frontend-Speech-Transcriber)
+- [Backend](https://github.com/sohamkoli29/Backend-Speech-Transcriber)
+
+
 #  Speech Transcriber (Backend)
 
 A **Node.js + Express** backend API for the Speech Transcriber application.  
