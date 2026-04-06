@@ -1,4 +1,4 @@
-// index.js (combined)
+// index.js
 import express from "express";
 import mongoose from "mongoose";
 import multer from "multer";
@@ -23,17 +23,14 @@ app.use(cors({
 app.use(express.json());
 
 // MongoDB connect
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true, 
-  useUnifiedTopology: true
-})
-.then(() => console.log("✅ MongoDB connected"))
-.catch(err => {
-  console.error("❌ MongoDB error:", err.message);
-  process.exit(1);
-});
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => {
+    console.error("❌ MongoDB error:", err.message);
+    process.exit(1);
+  });
 
-// Multer setup (with validation)
+// Multer setup
 const SUPPORTED_EXTENSIONS = [".wav", ".mp3", ".mp4", ".aac", ".ogg", ".webm", ".flac", ".m4a"];
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const MIN_FILE_SIZE = 1000;
@@ -119,11 +116,18 @@ const transcribeWithAssemblyAI = async (filePath, originalName) => {
     } else if (checkRes.data.status === "error") {
       throw new Error(`Transcription failed: ${checkRes.data.error}`);
     }
-    await new Promise(r => setTimeout(r, 3000)); // wait 3s
+    await new Promise(r => setTimeout(r, 3000));
   }
   return transcription;
 };
-
+app.get("/health", async (req, res) => {
+  try {
+    await mongoose.connection.db.admin().ping();
+    res.json({ success: true, status: "healthy", db: "connected", timestamp: new Date() });
+  } catch (err) {
+    res.json({ success: true, status: "unhealthy", db: "error", timestamp: new Date() });
+  }
+});
 // Routes
 app.use("/auth", authRoutes);
 
@@ -136,10 +140,8 @@ app.post("/upload", authenticateToken, upload.single("audio"), async (req, res) 
 
     console.log(`📥 Upload from ${req.user.email}: ${req.file.originalname}`);
 
-    // Transcribe
     const transcription = await transcribeWithAssemblyAI(filePath, req.file.originalname);
 
-    // Save DB
     const newTranscription = new Transcription({
       userId: req.user._id,
       filename: req.file.originalname,
@@ -186,9 +188,18 @@ app.delete("/history/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// Health check
-app.get("/health", (req, res) => {
-  res.json({ success: true, status: "healthy", timestamp: new Date() });
+// Health check — keep Render + MongoDB alive
+
+
+// Multer error handler
+app.use((err, req, res, next) => {
+  if (err.code === "UNSUPPORTED_FILE_TYPE") {
+    return res.status(400).json({ success: false, error: err.message });
+  }
+  if (err.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({ success: false, error: "File too large. Max 50MB." });
+  }
+  res.status(500).json({ success: false, error: err.message });
 });
 
 // 404
