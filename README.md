@@ -1,13 +1,13 @@
-# Speech Transcriber
+# Speechify
 
 ## Repositories
 - [Frontend](https://github.com/sohamkoli29/Frontend-Speech-Transcriber)
 - [Backend](https://github.com/sohamkoli29/Backend-Speech-Transcriber)
 
 
-#  Speech Transcriber (Backend)
+#  Speechify (Backend)
 
-A **Node.js + Express** backend API for the Speech Transcriber application.  
+A **Node.js + Express** backend API for the Speechify application.  
 Handles authentication, file uploads, database management, and communication with the frontend.
 
 ---
