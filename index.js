@@ -125,7 +125,8 @@ app.get("/health", async (req, res) => {
     await mongoose.connection.db.admin().ping();
     res.json({ success: true, status: "healthy", db: "connected", timestamp: new Date() });
   } catch (err) {
-    res.json({ success: true, status: "unhealthy", db: "error", timestamp: new Date() });
+    // Don't let this crash the server
+    res.status(200).json({ success: true, status: "degraded", db: "error", timestamp: new Date() });
   }
 });
 // Routes
@@ -201,7 +202,15 @@ app.use((err, req, res, next) => {
   }
   res.status(500).json({ success: false, error: err.message });
 });
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("🔥 Unhandled Rejection:", reason);
+  // Don't exit — just log it
+});
 
+process.on("uncaughtException", (err) => {
+  console.error("🔥 Uncaught Exception:", err.message);
+  // Don't exit — just log it
+});
 // 404
 app.use((req, res) => res.status(404).json({ success: false, error: "Not found" }));
 
